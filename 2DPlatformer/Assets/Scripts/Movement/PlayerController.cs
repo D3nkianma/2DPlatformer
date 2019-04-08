@@ -22,6 +22,8 @@ public class PlayerController : MonoBehaviour
 
 
     private Rigidbody2D myBody;
+    private AnimHelper animHelper;
+    private SpriteRenderer spriteRenderer;
     private float horizontal;
     private float vertical;
     private int currentJumpCount;
@@ -30,6 +32,8 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         myBody = GetComponent<Rigidbody2D>();
+        animHelper = GetComponent<AnimHelper>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
 
@@ -66,6 +70,8 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        animHelper.PlayOrStopAnimBool("Jumping", true);
+
         myBody.velocity = new Vector2(myBody.velocity.x, 0f);
 
         myBody.AddForce(Vector2.up * desiredJumpForce);
@@ -80,7 +86,16 @@ public class PlayerController : MonoBehaviour
     {
         if (horizontal != 0f)
         {
+            SetFacing();
+
+            if(isGrounded)
+                animHelper.PlayWalk();
+
             myBody.velocity = new Vector2(horizontal * moveSpeed, myBody.velocity.y);
+        }
+        else
+        {
+            animHelper.StopWalk();
         }
     }
 
@@ -93,8 +108,8 @@ public class PlayerController : MonoBehaviour
     {
         if (currentJumpCount > 0 && isGrounded == true)
         {
-            Debug.Log("Resetting Jump Count");
             currentJumpCount = 0;
+            animHelper.PlayOrStopAnimBool("Jumping", false);
         }
 
     }
@@ -111,6 +126,26 @@ public class PlayerController : MonoBehaviour
         ResetJump();
 
 
+    }
+
+
+    private void SetFacing()
+    {
+        if (horizontal < 0)
+        {
+            if (spriteRenderer.flipX == true)
+                return;
+
+            spriteRenderer.flipX = true;
+        }
+
+        if(horizontal > 0)
+        {
+            if (spriteRenderer.flipX == false)
+                return;
+
+            spriteRenderer.flipX = false;
+        }
     }
 
 
