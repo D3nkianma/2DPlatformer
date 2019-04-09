@@ -15,6 +15,13 @@ public class PlayerController : MonoBehaviour {
         Dashing
     }
 
+    public enum FacingDirection {
+        Left,
+        Right
+    }
+
+    public FacingDirection Facing { get { return GetFacing(); } }
+
     public JumpType jumpType = JumpType.Standard;
     [Header("Temp Jump Variables")]
     public float jumpForce = 1200f;
@@ -40,6 +47,7 @@ public class PlayerController : MonoBehaviour {
 
     [Header("Flags")]
     public bool isGrounded;
+    public bool isHittingWall;
 
     private bool usingDash;
 
@@ -83,6 +91,7 @@ public class PlayerController : MonoBehaviour {
 
         UpdateDash();
         CheckMoveState();
+        DetectWall();
 
         if (Input.GetButtonDown("Jump"))
         {
@@ -151,7 +160,7 @@ public class PlayerController : MonoBehaviour {
             return;
         }
 
-        if (horizontal != 0f)
+        if (horizontal != 0f && isHittingWall == false)
         {
             SetMoveState(MoveState.Running);
         }
@@ -164,18 +173,20 @@ public class PlayerController : MonoBehaviour {
     private void MoveHorizontal()
     {
         float desiredSpeed = 0f;
+        float desiredFacing = 0f;
 
         switch (moveState)
         {
             case MoveState.Standing:
 
                 animHelper.StopWalk();
-
+                desiredFacing = horizontal;
                 break;
 
             case MoveState.Running:
                 SetFacing();
                 desiredSpeed = moveSpeed;
+                desiredFacing = horizontal;
 
                 if (isGrounded)
                     animHelper.PlayWalk();
@@ -186,14 +197,35 @@ public class PlayerController : MonoBehaviour {
                 SetFacing();
                 desiredSpeed = dashSpeed;
 
+                desiredFacing = Facing == FacingDirection.Left ? -1 : 1;
+
                 break;
         }
 
-        myBody.velocity = new Vector2(horizontal * desiredSpeed, myBody.velocity.y);
+        myBody.velocity = new Vector2(desiredFacing * desiredSpeed, myBody.velocity.y);
 
 
     }
 
+    private void DetectWall()
+    {
+        Vector2 direction = Facing == FacingDirection.Left ? Vector2.left : Vector2.right;
+
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 0.5f, groundLayer);
+
+        Debug.DrawRay(transform.position, direction, Color.red);
+
+        if(hit.collider != null && isGrounded == false)
+        {
+            isHittingWall = true;
+        }
+        else
+        {
+            isHittingWall = false;
+        }
+
+
+    }
 
 
 
@@ -212,13 +244,16 @@ public class PlayerController : MonoBehaviour {
         if (usingDash == true)
             return;
 
+    
         usingDash = true;
         SetMoveState(MoveState.Dashing);
+        animHelper.PlayOrStopAnimBool("Dashing", true);
     }
 
     private void EndDash()
     {
         SetMoveState(MoveState.Standing);
+        animHelper.PlayOrStopAnimBool("Dashing", false);
     }
 
     private void RefreshDash()
@@ -273,6 +308,11 @@ public class PlayerController : MonoBehaviour {
 
         if (moveState != state)
             moveState = state;
+    }
+
+    public FacingDirection GetFacing()
+    {
+        return spriteRenderer.flipX ? FacingDirection.Left : FacingDirection.Right;
     }
 
 

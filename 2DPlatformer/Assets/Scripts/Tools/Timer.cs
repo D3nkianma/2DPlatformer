@@ -48,7 +48,6 @@ public class Timer
 
             if (_timer >= Duration)
             {
-
                 if (completionCallback != null)
                     completionCallback();
 
