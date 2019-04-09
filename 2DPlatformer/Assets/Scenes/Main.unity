@@ -213,7 +213,7 @@ Transform:
   m_GameObject: {fileID: 686663473}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.1, y: -4.63, z: 0}
-  m_LocalScale: {x: 19.337, y: 1, z: 1}
+  m_LocalScale: {x: 38.848034, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
@@ -312,7 +312,7 @@ GameObject:
   m_Layer: 0
   m_Name: GroundFinder
   m_TagString: Untagged
-  m_Icon: {fileID: 7422848464349959988, guid: 0000000000000000d000000000000000, type: 0}
+  m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -398,7 +398,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!212 &1794912468
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -474,15 +474,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86207a54ffe295a44b9f17f72bc4066c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  jumpType: 1
   jumpForce: 1200
   arialJumpForce: 750
   moveSpeed: 10
   maxJumpCount: 2
+  descendingFallMod: 1.5
+  ascendingFallMod: 1
+  dashDuration: 0.5
+  dashSpeed: 30
+  dashCooldown: 2
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
   groundFinder: {fileID: 1749479133}
   isGrounded: 0
+  moveState: 0
 --- !u!95 &1794912471
 Animator:
   serializedVersion: 3
