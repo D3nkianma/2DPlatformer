@@ -45,4 +45,9 @@ public class AnimHelper : MonoBehaviour
         myAnim.SetBool(boolName, play);
     }
 
+    public void StartAnimTrigger(string trigger)
+    {
+        myAnim.SetTrigger(trigger);
+    }
+
 }

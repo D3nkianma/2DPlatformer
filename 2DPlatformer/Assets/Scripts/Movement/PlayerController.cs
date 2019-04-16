@@ -50,15 +50,17 @@ public class PlayerController : MonoBehaviour {
     public bool isHittingWall;
 
     private bool usingDash;
+    private AttackManager attackManager;
 
     [Space(20)]
     public MoveState moveState = MoveState.Standing;
 
     private Rigidbody2D myBody;
     private AnimHelper animHelper;
+    
     private SpriteRenderer spriteRenderer;
-    private float horizontal;
-    private float vertical;
+    //private float horizontal;
+    //private float vertical;
     private int currentJumpCount;
 
     private Timer dashTimer;
@@ -70,6 +72,7 @@ public class PlayerController : MonoBehaviour {
         myBody = GetComponent<Rigidbody2D>();
         animHelper = GetComponent<AnimHelper>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        attackManager = GetComponent<AttackManager>();
     }
 
     private void Start()
@@ -86,22 +89,22 @@ public class PlayerController : MonoBehaviour {
 
     private void Update()
     {
-        horizontal = Input.GetAxis("Horizontal");
-        vertical = Input.GetAxis("Vertical");
-
         UpdateDash();
         CheckMoveState();
         DetectWall();
 
-        if (Input.GetButtonDown("Jump"))
+        if (GameInput.Jump)
         {
             Jump();
         }
 
-        if (Input.GetButtonDown("Dash"))
+        if (GameInput.Dash)
         {
             BeginDash();
         }
+
+        if (GameInput.Fire1)
+            Punch();
 
         if (jumpType == JumpType.Variable)
             VariableFall();
@@ -112,6 +115,21 @@ public class PlayerController : MonoBehaviour {
     {
         MoveHorizontal();
         CheckGround();
+    }
+
+
+    private void Punch()
+    {
+        animHelper.StartAnimTrigger("Punch");
+        attackManager.LaunchAttack(Facing, CalcXKnockback(25f), 12f);
+    }
+
+    private float CalcXKnockback(float xForce)
+    {
+        if (Facing == FacingDirection.Left)
+            return xForce * -1f;
+        else
+            return xForce;
     }
 
     private void Jump()
@@ -130,27 +148,27 @@ public class PlayerController : MonoBehaviour {
         myBody.AddForce(Vector2.up * desiredJumpForce);
 
         currentJumpCount++;
-
-
     }
 
     private void VariableFall()
     {
         Vector2 desiredFallVelocity = Vector2.zero;
 
-        if (myBody.velocity.y < 0)
+        if (moveState == MoveState.Dashing)
+        {
+            myBody.velocity = new Vector2(myBody.velocity.x, 0f);
+        }
+        else if (myBody.velocity.y < 0)
         {
             desiredFallVelocity = Vector2.up * Physics2D.gravity.y * descendingFallMod * Time.deltaTime;
         }
-        else if (myBody.velocity.y > 0 && Input.GetButton("Jump") == false)
+        else if (myBody.velocity.y > 0 && GameInput.JumpHeld == false)
         {
             desiredFallVelocity = Vector2.up * Physics2D.gravity.y * ascendingFallMod * Time.deltaTime;
         }
 
         myBody.velocity += desiredFallVelocity;
     }
-
-
 
     private void CheckMoveState()
     {
@@ -160,7 +178,7 @@ public class PlayerController : MonoBehaviour {
             return;
         }
 
-        if (horizontal != 0f && isHittingWall == false)
+        if (GameInput.Horizontal != 0f && isHittingWall == false)
         {
             SetMoveState(MoveState.Running);
         }
@@ -180,13 +198,13 @@ public class PlayerController : MonoBehaviour {
             case MoveState.Standing:
 
                 animHelper.StopWalk();
-                desiredFacing = horizontal;
+                desiredFacing = GameInput.Horizontal;
                 break;
 
             case MoveState.Running:
                 SetFacing();
                 desiredSpeed = moveSpeed;
-                desiredFacing = horizontal;
+                desiredFacing = GameInput.Horizontal;
 
                 if (isGrounded)
                     animHelper.PlayWalk();
@@ -203,8 +221,6 @@ public class PlayerController : MonoBehaviour {
         }
 
         myBody.velocity = new Vector2(desiredFacing * desiredSpeed, myBody.velocity.y);
-
-
     }
 
     private void DetectWall()
@@ -213,9 +229,9 @@ public class PlayerController : MonoBehaviour {
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 0.5f, groundLayer);
 
-        Debug.DrawRay(transform.position, direction, Color.red);
+        //Debug.DrawRay(transform.position, direction, Color.red);
 
-        if(hit.collider != null && isGrounded == false)
+        if (hit.collider != null && isGrounded == false && myBody.velocity.y <= 0f)
         {
             isHittingWall = true;
         }
@@ -223,17 +239,12 @@ public class PlayerController : MonoBehaviour {
         {
             isHittingWall = false;
         }
-
-
     }
-
-
 
     private void UpdateDash()
     {
         if (dashCooldownTimer != null && usingDash == true)
             dashCooldownTimer.UpdateClock();
-
 
         if (dashTimer != null && moveState == MoveState.Dashing)
             dashTimer.UpdateClock();
@@ -244,7 +255,7 @@ public class PlayerController : MonoBehaviour {
         if (usingDash == true)
             return;
 
-    
+
         usingDash = true;
         SetMoveState(MoveState.Dashing);
         animHelper.PlayOrStopAnimBool("Dashing", true);
@@ -291,12 +302,12 @@ public class PlayerController : MonoBehaviour {
 
     private void SetFacing()
     {
-        if (horizontal < 0 && spriteRenderer.flipX == false)
+        if (GameInput.Horizontal < 0 && spriteRenderer.flipX == false)
         {
             spriteRenderer.flipX = true;
         }
 
-        if (horizontal > 0 && spriteRenderer.flipX == true)
+        if (GameInput.Horizontal > 0 && spriteRenderer.flipX == true)
         {
             spriteRenderer.flipX = false;
         }
