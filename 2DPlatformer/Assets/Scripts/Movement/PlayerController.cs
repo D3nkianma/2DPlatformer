@@ -104,7 +104,7 @@ public class PlayerController : MonoBehaviour {
         }
 
         if (GameInput.Fire1)
-            Punch();
+            Attack();
 
         if (jumpType == JumpType.Variable)
             VariableFall();
@@ -118,10 +118,10 @@ public class PlayerController : MonoBehaviour {
     }
 
 
-    private void Punch()
+    private void Attack()
     {
         animHelper.StartAnimTrigger("Punch");
-        attackManager.LaunchAttack(Facing, CalcXKnockback(25f), 12f);
+        attackManager.LaunchAttack(Facing, CalcXKnockback(15f), 15f);
     }
 
     private float CalcXKnockback(float xForce)
@@ -288,13 +288,17 @@ public class PlayerController : MonoBehaviour {
     }
 
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D other)
     {
-        int otherLayer = collision.gameObject.layer;
-        string layerName = LayerMask.LayerToName(otherLayer);
 
-        if (layerName != "Ground")
+        if (LayerTools.IsLayerInMask(groundLayer, other.gameObject.layer) == false)
             return;
+
+        //    int otherLayer = collision.gameObject.layer;
+        //string layerName = LayerMask.LayerToName(otherLayer);
+
+        //if (layerName != "Ground")
+        //    return;
 
         ResetJump();
     }
@@ -325,12 +329,6 @@ public class PlayerController : MonoBehaviour {
     {
         return spriteRenderer.flipX ? FacingDirection.Left : FacingDirection.Right;
     }
-
-
-
-
-
-
 
 
 

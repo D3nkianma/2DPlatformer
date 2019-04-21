@@ -32,18 +32,28 @@ public class HealthDeathManager : MonoBehaviour
         if (currentHealth > maxHealth)
             currentHealth = maxHealth;
 
-        if(value < 0f)
-        {
-            Owner.AnimHelper.StartAnimTrigger("Flinch");
-        }
+        PlayHealthAlterAnim(value);
 
         if(currentHealth <= 0f)
+            Die();
+
+    }
+
+    private void Die()
+    {
+        EntityMovement movement = Owner.Movement;
+        if (movement != null)
+            movement.SpinCrazy();
+    }
+
+
+    private void PlayHealthAlterAnim(float value)
+    {
+        if(value < 0f)
+            Owner.AnimHelper.StartAnimTrigger("Flinch");
+        else
         {
-            EntityMovement movement = Owner.Movement;
-            if (movement != null)
-            {
-                movement.SpinCrazy();
-            }
+            // Play Heal Anim;
         }
 
     }

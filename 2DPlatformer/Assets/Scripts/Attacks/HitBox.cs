@@ -2,20 +2,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HitBox : MonoBehaviour
-{
+public class HitBox : MonoBehaviour {
+
+    [Header("Basic Variables")]
     public float damage;
+    [Range(0.1f, 5f)]
     public float lifetime = 1f;
     public LayerMask mask;
 
+    [Header("VFX")]
+    public GameObject impactEffect;
+
     private Vector2 knockBackVector;
+
+    private List<GameObject> targets = new List<GameObject>();
+
+    private AnimHelper animHelper;
+
+    private void Awake()
+    {
+        animHelper = GetComponent<AnimHelper>();
+    }
 
     private void Start()
     {
-        if(lifetime > 0f)
-        {
-            Destroy(gameObject, lifetime);
-        }
+        Destroy(gameObject, lifetime);
+        animHelper.StartAnimTrigger("Attack1");
     }
 
     public void SetKnockback(Vector2 knockback)
@@ -25,22 +37,64 @@ public class HitBox : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if ((mask & 1 << other.gameObject.layer) == 1 << other.gameObject.layer == false)
+        if (LayerTools.IsLayerInMask(mask, other.gameObject.layer) == false)
             return;
 
-        HealthDeathManager otherHealth = other.gameObject.GetComponentInChildren<HealthDeathManager>();
+        if (CheckHitTargets(other.gameObject) == false)
+            return;
+
+        CreateHitEffect(other.transform.position);
+        DealDamage(other.gameObject);
+        ApplyForcedMovement(other.gameObject);
+    }
+
+    private void DealDamage(GameObject other)
+    {
+        HealthDeathManager otherHealth = other.GetComponentInChildren<HealthDeathManager>();
 
         if (otherHealth == null)
             return;
 
         otherHealth.AlterHealth(damage);
+    }
 
-        EntityMovement movement = otherHealth.Owner.Movement;
-        if(movement != null)
+    private void ApplyForcedMovement(GameObject other)
+    {
+        EntityMovement movement = other.GetComponentInChildren<EntityMovement>();
+        if (movement == null)
+            return;
+
+        movement.ForceMovement(knockBackVector);
+    }
+
+    private bool CheckHitTargets(GameObject target)
+    {
+        if (target == null)
+            return false;
+
+        int count = targets.Count;
+        for (int i = 0; i < count; i++)
         {
-            movement.ForceMovement(knockBackVector);
+            if (targets[i] == target)
+                return false;
         }
-        
+
+        if (targets.Contains(target) == false)
+            targets.Add(target);
+
+        return true;
+    }
+
+    private void CreateHitEffect(Vector2 location)
+    {
+        if (impactEffect == null)
+            return;
+
+        Vector2 loc = new Vector2(location.x + Random.Range(-0.5f, 0.5f), location.y + Random.Range(-0.5f, 0.5f));
+
+        GameObject impact = Instantiate(impactEffect, loc, Quaternion.identity) as GameObject;
+        Destroy(impact, 2f);
+
     }
 
 

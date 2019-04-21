@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class AnimHelper : MonoBehaviour
 {
 
     private Animator myAnim;
 
+    private Action animCallback;
 
 
     private void Awake()
@@ -48,6 +50,23 @@ public class AnimHelper : MonoBehaviour
     public void StartAnimTrigger(string trigger)
     {
         myAnim.SetTrigger(trigger);
+    }
+
+    public void SetAnimCallback(Action callback)
+    {
+        if (animCallback != callback)
+            animCallback = callback;
+    }
+
+
+    public void RecieveAnimEvent(AnimationEvent param)
+    {
+        Debug.Log("I've got a thing to do " + param.stringParameter);
+
+
+        if (animCallback != null)
+            animCallback();
+        
     }
 
 }

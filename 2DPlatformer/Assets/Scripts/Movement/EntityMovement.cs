@@ -22,11 +22,12 @@ public class EntityMovement : MonoBehaviour
 
     public void SpinCrazy()
     {
-        float randongRotSpeed = Random.Range(-360f, 360f);
+        float randongRotSpeed = Random.Range(-720f, 720f);
         float randomY = Random.Range(250f, 350f);
 
         Vector2 force = new Vector2(myBody.velocity.x, randomY);
         myBody.freezeRotation = false;
+        myBody.gravityScale = 1.5f;
         myBody.angularVelocity = randongRotSpeed;
     }
 
